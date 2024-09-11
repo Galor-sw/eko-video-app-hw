@@ -60,7 +60,7 @@ This setup ensures that the application is optimized for performance and easier 
 
 ## Project Packaging
 The project is available in two formats:
-    - GitHub Repository: You can access the project repository on GitHub here.
-    - ZIP File: The project can also be downloaded as a ZIP file here.
+    - GitHub Repository: You can access the project repository on GitHub https://github.com/Galor-sw/eko-video-app-hw.git.
+    - ZIP File: The project can also be downloaded as a ZIP file attached to the mail.
 
 Feel free to reach out if you have any questions or need further assistance!
