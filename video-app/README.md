@@ -1,70 +1,66 @@
-# Getting Started with Create React App
+# Eko Startup Homework Assignment
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This project is a solution for a homework assignment from Eko Startup, developed by **Gal Or**.
+It includes a simple web page with an HTML5 Video Element and several key functionalities:
+- **Play/Pause Toggle**
+- **Progress Indication with Time Labels**
+- **Views Counter**
+- **Like/Dislike Functionality**
+- **Integration with Firebase Realtime Database for Persistence**
 
-## Available Scripts
 
-In the project directory, you can run:
+## How to Get Set Up
+1. **Update Firebase Configuration:**
 
-### `npm start`
+   Replace the contents of `src/firebaseConfig.js` with the correct Firebase credentials (sended separated).
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+2. **Install Dependencies:**
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+   Run the following command to install the required dependencies:
+   npm install
+   npm start
 
-### `npm test`
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Things to Consider
+### Framework Choice
+I chose **React** for this project due to its efficiency in handling multiple state updates and re-rendering the DOM.
 
-### `npm run build`
+### Single Source of Truth
+I utilized **browser local storage** to ensure that view counts and like/dislike votes are correctly handled. 
+This approach guarantees that users can vote only once and view the video only once per session. 
+This helps maintain data integrity in the database.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Handling Concurrent Users
+To ensure data consistency when multiple users interact with the voting system simultaneously, 
+I implemented **Firebase Realtime Database** subscriptions. 
+This approach ensures that changes are synchronized in real time and prevents data loss.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### Bundling and Packing
+The project uses **Webpack** for bundling and packing. 
+Webpack compiles the project's JavaScript, CSS (used Tailwind.css CDN), and other assets into a single bundle that is served to the browser. 
+This setup ensures that the application is optimized for performance and easier to deploy.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
 
-### `npm run eject`
+## Testing cases
+1. **Testing Play/Pause Toggle:**
+    - Verify that the button text or icon changes between "Play" and "Pause" when clicked.
+    - Ensure that the video pauses when the play button is clicked and plays when the pause button is clicked.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+2. **Testing Progress Bar:**
+    - Check that the progress bar fills correctly as the video plays.
+    - Ensure that clicking on the progress bar seeks the video to the correct time.
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+3. **Testing View Count Increment:**
+    - Verify that the view count is incremented by 1 each time the video is viewed.
+    - Ensure that the view count is updated correctly in the Firebase Realtime Database.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+4. **Testing Like/Dislike Functionality:**
+    - Confirm that clicking the like button increments the like counter and clicking the dislike button increments the dislike counter.
+    - Ensure that users can only vote once per session and that votes are correctly reflected in Firebase.
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## Project Packaging
+The project is available in two formats:
+    - GitHub Repository: You can access the project repository on GitHub here.
+    - ZIP File: The project can also be downloaded as a ZIP file here.
 
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Feel free to reach out if you have any questions or need further assistance!
