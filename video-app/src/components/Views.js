@@ -1,14 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { ref, onValue } from 'firebase/database';
 
-// Spinner component with inline Tailwind CSS classes
 const Spinner = () => (
     <div className="w-6 h-6 border-2 border-t-2 border-gray-400 border-solid rounded-full animate-spin border-t-gray-600"></div>
 );
 
 const Views = ({ videoDatabase }) => {
-    const [views, setViews] = useState(null); // Initialize as null to avoid showing 0 initially
-    const [loading, setLoading] = useState(true); // State to track loading status
+    const [views, setViews] = useState(null);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const viewsRef = ref(videoDatabase, 'views');

@@ -15,41 +15,38 @@ const VideoPlayer = ({ videoDatabase }) => {
     const [iconType, setIconType] = useState('play');
     const [showOverlayIcon, setShowOverlayIcon] = useState(false);
     const [hasPlayed, setHasPlayed] = useState(false);
-    const [loading, setLoading] = useState(true); // Add loading state
-    const [views, setViews] = useState(0); // Add views state
+    const [loading, setLoading] = useState(true);
+    const [views, setViews] = useState(0);
 
     // Increment the view count if not already done
     const incrementViews = useCallback(() => {
         const viewsRef = ref(videoDatabase, 'views');
         runTransaction(viewsRef, (currentViews) => {
             if (currentViews === null) {
-                return 1; // Initial value if not present
+                return 1;
             }
             return (currentViews || 0) + 1;
         }).then(() => {
-            // Fetch the updated view count
             onValue(viewsRef, (snapshot) => {
                 setViews(snapshot.val() || 0);
-                setLoading(false); // Set loading to false once view count is updated
+                setLoading(false);
             });
         });
     }, [videoDatabase]);
 
     useEffect(() => {
         const video = videoRef.current;
-        const videoId = 'uniqueVideoId'; // Use a unique identifier for the video
+        const videoId = 'uniqueVideoId'; 
         const hasViewed = localStorage.getItem(`hasViewed_${videoId}`);
 
-        // Check if the video has already been viewed
         if (!hasViewed) {
             localStorage.setItem(`hasViewed_${videoId}`, 'true');
-            incrementViews(); // Increment views if not viewed
+            incrementViews();
         } else {
-            // Fetch the current view count if already viewed
             const viewsRef = ref(videoDatabase, 'views');
             onValue(viewsRef, (snapshot) => {
                 setViews(snapshot.val() || 0);
-                setLoading(false); // Set loading to false once view count is updated
+                setLoading(false);
             });
         }
 
@@ -61,27 +58,27 @@ const VideoPlayer = ({ videoDatabase }) => {
 
         const updateDuration = () => {
             setDuration(video.duration);
-            setLoading(false); // Set loading to false once duration is set
+            setLoading(false);
         };
 
         const handleEnded = () => {
             setIsPlaying(false);
             setIsEnded(true);
-            setIconType('replay'); // Set to replay when video ends
+            setIconType('replay');
         };
 
         const handlePlay = () => {
             setIsPlaying(true);
             setIsEnded(false);
-            setIconType('pause'); // Set to pause when video is playing
+            setIconType('pause');
             if (!hasPlayed) {
-                setHasPlayed(true); // Mark as played
+                setHasPlayed(true);
             }
         };
 
         const handlePause = () => {
             setIsPlaying(false);
-            setIconType('play'); // Set to play when video is paused
+            setIconType('play');
         };
 
         video.addEventListener('timeupdate', updateTime);
@@ -114,8 +111,8 @@ const VideoPlayer = ({ videoDatabase }) => {
         video.play();
         setIsPlaying(true);
         setIsEnded(false);
-        setIconType('pause'); // Set to pause after replay
-        setHasPlayed(false); // Reset played status for counting views again
+        setIconType('pause');
+        setHasPlayed(false);
     };
 
     const formatTime = (time) => {

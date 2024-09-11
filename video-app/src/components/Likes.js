@@ -15,7 +15,6 @@ const Likes = ({ videoDatabase }) => {
     const [loading, setLoading] = useState(true); // State to track loading status
 
     useEffect(() => {
-        // Load the user's vote status from localStorage
         const storedVote = localStorage.getItem('userVote');
         setUserVote(storedVote);
 
@@ -31,7 +30,7 @@ const Likes = ({ videoDatabase }) => {
         const fetchDislikes = onValue(thumbsDownRef, (snapshot) => {
             const dislikes = snapshot.val() || 0;
             setThumbsDown(dislikes);
-            setLoading(false); // Data has been loaded
+            setLoading(false);
         });
 
         return () => {
@@ -41,7 +40,7 @@ const Likes = ({ videoDatabase }) => {
     }, [videoDatabase]);
 
     const handleThumbsUp = useCallback(() => {
-        if (userVote === 'like') return; // Prevent double voting
+        if (userVote === 'like') return;
         if (userVote === 'dislike') {
             const thumbsDownRef = ref(videoDatabase, 'dislikes');
             runTransaction(thumbsDownRef, (currentDislikes) => Math.max((currentDislikes || 0) - 1, 0));
@@ -56,9 +55,8 @@ const Likes = ({ videoDatabase }) => {
     }, [userVote, videoDatabase]);
 
     const handleThumbsDown = useCallback(() => {
-        if (userVote === 'dislike') return; // Prevent double voting
+        if (userVote === 'dislike') return;
         if (userVote === 'like') {
-            // Remove like if previously liked
             const thumbsUpRef = ref(videoDatabase, 'likes');
             runTransaction(thumbsUpRef, (currentLikes) => Math.max((currentLikes || 0) - 1, 0));
         }
