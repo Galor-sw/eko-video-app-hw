@@ -16,7 +16,6 @@ const VideoPlayer = ({ videoDatabase }) => {
     const [showOverlayIcon, setShowOverlayIcon] = useState(false);
     const [hasPlayed, setHasPlayed] = useState(false);
     const [loading, setLoading] = useState(true);
-    const [views, setViews] = useState(0);
 
     // Increment the view count if not already done
     const incrementViews = useCallback(() => {
@@ -28,7 +27,6 @@ const VideoPlayer = ({ videoDatabase }) => {
             return (currentViews || 0) + 1;
         }).then(() => {
             onValue(viewsRef, (snapshot) => {
-                setViews(snapshot.val() || 0);
                 setLoading(false);
             });
         });
@@ -36,18 +34,12 @@ const VideoPlayer = ({ videoDatabase }) => {
 
     useEffect(() => {
         const video = videoRef.current;
-        const videoId = 'uniqueVideoId'; 
+        const videoId = 'uniqueVideoId';
         const hasViewed = localStorage.getItem(`hasViewed_${videoId}`);
 
         if (!hasViewed) {
             localStorage.setItem(`hasViewed_${videoId}`, 'true');
             incrementViews();
-        } else {
-            const viewsRef = ref(videoDatabase, 'views');
-            onValue(viewsRef, (snapshot) => {
-                setViews(snapshot.val() || 0);
-                setLoading(false);
-            });
         }
 
         const updateTime = () => {
@@ -233,9 +225,6 @@ const VideoPlayer = ({ videoDatabase }) => {
                             <span className="text-gray-900 font-semibold">{formatTime(duration)}</span>
                         </>
                     )}
-                </div>
-                <div className="text-gray-900 font-semibold">
-                    {loading ? 'Fetching views...' : `${views} Views`}
                 </div>
             </div>
         </div>
