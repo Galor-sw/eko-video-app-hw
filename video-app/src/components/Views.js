@@ -8,14 +8,14 @@ const Views = ({ videoDatabase }) => {
         const viewsRef = ref(videoDatabase, 'views');
 
         // Fetch and listen for view count changes
-        const fetchViews = onValue(viewsRef, (snapshot) => {
+        const unsubscribe = onValue(viewsRef, (snapshot) => {
             const viewsCount = snapshot.val() || 0;
             setViews(viewsCount);
         });
 
         // Clean up listener on component unmount
         return () => {
-            fetchViews();
+            unsubscribe(); // Unsubscribe from the listener
         };
     }, [videoDatabase]);
 

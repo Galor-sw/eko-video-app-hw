@@ -1,7 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { ref, runTransaction } from 'firebase/database';
-
-// Import icons
 import playIcon from '../assets/play.png';
 import pauseIcon from '../assets/pause.png';
 import replayIcon from '../assets/replay.png';
@@ -14,8 +12,8 @@ const VideoPlayer = ({ videoDatabase }) => {
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
     const [isDragging, setIsDragging] = useState(false);
-    const [iconType, setIconType] = useState('play'); // Icon type under timeline
-    const [showOverlayIcon, setShowOverlayIcon] = useState(false); // Show icon for video click
+    const [iconType, setIconType] = useState('play');
+    const [showOverlayIcon, setShowOverlayIcon] = useState(false);
 
     // Increment the view count
     const incrementViews = useCallback(() => {

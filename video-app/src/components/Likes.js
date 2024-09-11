@@ -9,6 +9,10 @@ const Likes = ({ videoDatabase }) => {
     const [userVote, setUserVote] = useState(null); // Keeps track of user vote (null, 'like', 'dislike')
 
     useEffect(() => {
+        // Load the user's vote status from localStorage
+        const storedVote = localStorage.getItem('userVote');
+        setUserVote(storedVote);
+
         const thumbsUpRef = ref(videoDatabase, 'likes');
         const thumbsDownRef = ref(videoDatabase, 'dislikes');
 
@@ -32,36 +36,38 @@ const Likes = ({ videoDatabase }) => {
 
     const handleThumbsUp = () => {
         if (userVote === 'like') return; // Prevent double voting
+        if (userVote === 'dislike') {
+            // Remove dislike if previously disliked
+            const thumbsDownRef = ref(videoDatabase, 'dislikes');
+            runTransaction(thumbsDownRef, (currentDislikes) => Math.max((currentDislikes || 0) - 1, 0));
+        }
+
         const thumbsUpRef = ref(videoDatabase, 'likes');
-        const thumbsDownRef = ref(videoDatabase, 'dislikes');
+        runTransaction(thumbsUpRef, (currentLikes) => (currentLikes || 0) + 1);
 
-        runTransaction(thumbsUpRef, (currentLikes) => {
-            if (userVote === 'dislike') {
-                runTransaction(thumbsDownRef, (currentDislikes) => Math.max((currentDislikes || 0) - 1, 0));
-            }
-            return (currentLikes || 0) + 1;
-        });
-
+        // Store the vote in localStorage
+        localStorage.setItem('userVote', 'like');
         setUserVote('like');
     };
 
     const handleThumbsDown = () => {
         if (userVote === 'dislike') return; // Prevent double voting
-        const thumbsUpRef = ref(videoDatabase, 'likes');
+        if (userVote === 'like') {
+            // Remove like if previously liked
+            const thumbsUpRef = ref(videoDatabase, 'likes');
+            runTransaction(thumbsUpRef, (currentLikes) => Math.max((currentLikes || 0) - 1, 0));
+        }
+
         const thumbsDownRef = ref(videoDatabase, 'dislikes');
+        runTransaction(thumbsDownRef, (currentDislikes) => (currentDislikes || 0) + 1);
 
-        runTransaction(thumbsDownRef, (currentDislikes) => {
-            if (userVote === 'like') {
-                runTransaction(thumbsUpRef, (currentLikes) => Math.max((currentLikes || 0) - 1, 0));
-            }
-            return (currentDislikes || 0) + 1;
-        });
-
+        // Store the vote in localStorage
+        localStorage.setItem('userVote', 'dislike');
         setUserVote('dislike');
     };
 
     return (
-        <div className="social flex flex-col items-center mt-4">
+        <div className="social flex flex-col items-center">
             <div className="flex gap-2.5 mt-2">
                 <button
                     onClick={handleThumbsUp}
