@@ -1,12 +1,18 @@
-import React, { useEffect, useState } from 'react';
-import { ref, runTransaction, onValue } from 'firebase/database'; // Firebase database operations
-import likeLogo from '../assets/like.png';  // Import like image
-import disLikeLogo from '../assets/dislike.png';  // Import dislike image
+import React, { useEffect, useState, useCallback } from 'react';
+import { ref, runTransaction, onValue } from 'firebase/database';
+import likeLogo from '../assets/like.png';
+import disLikeLogo from '../assets/dislike.png';
+
+// Spinner component with inline Tailwind CSS classes
+const Spinner = () => (
+    <div className="w-6 h-6 border-2 border-t-2 border-gray-400 border-solid rounded-full animate-spin border-t-gray-600"></div>
+);
 
 const Likes = ({ videoDatabase }) => {
-    const [thumbsUp, setThumbsUp] = useState(null); // Initialize as null
-    const [thumbsDown, setThumbsDown] = useState(null); // Initialize as null
-    const [userVote, setUserVote] = useState(null); // Keeps track of user vote (null, 'like', 'dislike')
+    const [thumbsUp, setThumbsUp] = useState(null);
+    const [thumbsDown, setThumbsDown] = useState(null);
+    const [userVote, setUserVote] = useState(null);
+    const [loading, setLoading] = useState(true); // State to track loading status
 
     useEffect(() => {
         // Load the user's vote status from localStorage
@@ -25,19 +31,18 @@ const Likes = ({ videoDatabase }) => {
         const fetchDislikes = onValue(thumbsDownRef, (snapshot) => {
             const dislikes = snapshot.val() || 0;
             setThumbsDown(dislikes);
+            setLoading(false); // Data has been loaded
         });
 
-        // Clean up listeners on component unmount
         return () => {
             fetchLikes();
             fetchDislikes();
         };
     }, [videoDatabase]);
 
-    const handleThumbsUp = () => {
+    const handleThumbsUp = useCallback(() => {
         if (userVote === 'like') return; // Prevent double voting
         if (userVote === 'dislike') {
-            // Remove dislike if previously disliked
             const thumbsDownRef = ref(videoDatabase, 'dislikes');
             runTransaction(thumbsDownRef, (currentDislikes) => Math.max((currentDislikes || 0) - 1, 0));
         }
@@ -48,9 +53,9 @@ const Likes = ({ videoDatabase }) => {
         // Store the vote in localStorage
         localStorage.setItem('userVote', 'like');
         setUserVote('like');
-    };
+    }, [userVote, videoDatabase]);
 
-    const handleThumbsDown = () => {
+    const handleThumbsDown = useCallback(() => {
         if (userVote === 'dislike') return; // Prevent double voting
         if (userVote === 'like') {
             // Remove like if previously liked
@@ -64,7 +69,7 @@ const Likes = ({ videoDatabase }) => {
         // Store the vote in localStorage
         localStorage.setItem('userVote', 'dislike');
         setUserVote('dislike');
-    };
+    }, [userVote, videoDatabase]);
 
     return (
         <div className="social flex flex-col items-center">
@@ -75,7 +80,13 @@ const Likes = ({ videoDatabase }) => {
                 >
                     <img src={likeLogo} alt="Thumbs Up" className="w-5 h-5 mr-2" />
                     <span className="text-sm">
-                        {thumbsUp !== null ? thumbsUp : ''} {/* Show nothing until value is loaded */}
+                        {loading ? (
+                            <div className="ml-1">
+                                <Spinner />
+                            </div>
+                        ) : (
+                            thumbsUp !== null ? thumbsUp : ''
+                        )}
                     </span>
                 </button>
                 <button
@@ -84,7 +95,13 @@ const Likes = ({ videoDatabase }) => {
                 >
                     <img src={disLikeLogo} alt="Thumbs Down" className="w-5 h-5 mr-2" />
                     <span className="text-sm">
-                        {thumbsDown !== null ? thumbsDown : ''} {/* Show nothing until value is loaded */}
+                        {loading ? (
+                            <div className="ml-1">
+                                <Spinner />
+                            </div>
+                        ) : (
+                            thumbsDown !== null ? thumbsDown : ''
+                        )}
                     </span>
                 </button>
             </div>

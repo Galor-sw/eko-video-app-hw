@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
-import { ref, runTransaction } from 'firebase/database';
+import { ref, runTransaction, onValue } from 'firebase/database';
 import playIcon from '../assets/play.png';
 import pauseIcon from '../assets/pause.png';
 import replayIcon from '../assets/replay.png';
@@ -14,19 +14,44 @@ const VideoPlayer = ({ videoDatabase }) => {
     const [isDragging, setIsDragging] = useState(false);
     const [iconType, setIconType] = useState('play');
     const [showOverlayIcon, setShowOverlayIcon] = useState(false);
+    const [hasPlayed, setHasPlayed] = useState(false);
+    const [loading, setLoading] = useState(true); // Add loading state
+    const [views, setViews] = useState(0); // Add views state
 
-    // Increment the view count
+    // Increment the view count if not already done
     const incrementViews = useCallback(() => {
         const viewsRef = ref(videoDatabase, 'views');
-        runTransaction(viewsRef, (currentViews) => (currentViews || 0) + 1);
+        runTransaction(viewsRef, (currentViews) => {
+            if (currentViews === null) {
+                return 1; // Initial value if not present
+            }
+            return (currentViews || 0) + 1;
+        }).then(() => {
+            // Fetch the updated view count
+            onValue(viewsRef, (snapshot) => {
+                setViews(snapshot.val() || 0);
+                setLoading(false); // Set loading to false once view count is updated
+            });
+        });
     }, [videoDatabase]);
 
     useEffect(() => {
-        incrementViews();
-    }, [incrementViews]);
-
-    useEffect(() => {
         const video = videoRef.current;
+        const videoId = 'uniqueVideoId'; // Use a unique identifier for the video
+        const hasViewed = localStorage.getItem(`hasViewed_${videoId}`);
+
+        // Check if the video has already been viewed
+        if (!hasViewed) {
+            localStorage.setItem(`hasViewed_${videoId}`, 'true');
+            incrementViews(); // Increment views if not viewed
+        } else {
+            // Fetch the current view count if already viewed
+            const viewsRef = ref(videoDatabase, 'views');
+            onValue(viewsRef, (snapshot) => {
+                setViews(snapshot.val() || 0);
+                setLoading(false); // Set loading to false once view count is updated
+            });
+        }
 
         const updateTime = () => {
             if (!isDragging) {
@@ -36,6 +61,7 @@ const VideoPlayer = ({ videoDatabase }) => {
 
         const updateDuration = () => {
             setDuration(video.duration);
+            setLoading(false); // Set loading to false once duration is set
         };
 
         const handleEnded = () => {
@@ -44,25 +70,34 @@ const VideoPlayer = ({ videoDatabase }) => {
             setIconType('replay'); // Set to replay when video ends
         };
 
-        video.addEventListener('timeupdate', updateTime);
-        video.addEventListener('loadedmetadata', updateDuration);
-        video.addEventListener('ended', handleEnded);
-        video.addEventListener('play', () => {
+        const handlePlay = () => {
             setIsPlaying(true);
             setIsEnded(false);
             setIconType('pause'); // Set to pause when video is playing
-        });
-        video.addEventListener('pause', () => {
+            if (!hasPlayed) {
+                setHasPlayed(true); // Mark as played
+            }
+        };
+
+        const handlePause = () => {
             setIsPlaying(false);
             setIconType('play'); // Set to play when video is paused
-        });
+        };
+
+        video.addEventListener('timeupdate', updateTime);
+        video.addEventListener('loadedmetadata', updateDuration);
+        video.addEventListener('ended', handleEnded);
+        video.addEventListener('play', handlePlay);
+        video.addEventListener('pause', handlePause);
 
         return () => {
             video.removeEventListener('timeupdate', updateTime);
             video.removeEventListener('loadedmetadata', updateDuration);
             video.removeEventListener('ended', handleEnded);
+            video.removeEventListener('play', handlePlay);
+            video.removeEventListener('pause', handlePause);
         };
-    }, [isDragging]);
+    }, [isDragging, incrementViews, hasPlayed]);
 
     const handlePlayPause = () => {
         const video = videoRef.current;
@@ -80,6 +115,7 @@ const VideoPlayer = ({ videoDatabase }) => {
         setIsPlaying(true);
         setIsEnded(false);
         setIconType('pause'); // Set to pause after replay
+        setHasPlayed(false); // Reset played status for counting views again
     };
 
     const formatTime = (time) => {
@@ -88,7 +124,6 @@ const VideoPlayer = ({ videoDatabase }) => {
         return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     };
 
-    // Function to seek the video when clicking on the timeline
     const handleTimelineClick = (e) => {
         const timeline = timelineRef.current;
         const rect = timeline.getBoundingClientRect();
@@ -98,12 +133,10 @@ const VideoPlayer = ({ videoDatabase }) => {
         setCurrentTime(newTime);
     };
 
-    // Handle drag start for the timeline
     const handleDragStart = (e) => {
         setIsDragging(true);
     };
 
-    // Handle dragging the timeline toggle
     const handleDragging = (e) => {
         if (!isDragging) return;
 
@@ -115,12 +148,10 @@ const VideoPlayer = ({ videoDatabase }) => {
         setCurrentTime(newTime);
     };
 
-    // Handle drag end for the timeline
     const handleDragEnd = () => {
         setIsDragging(false);
     };
 
-    // Handle click on video
     const handleVideoClick = () => {
         if (isEnded) {
             handlePlayAgain();
@@ -128,13 +159,12 @@ const VideoPlayer = ({ videoDatabase }) => {
             handlePlayPause();
         }
         setShowOverlayIcon(true);
-        setTimeout(() => setShowOverlayIcon(false), 1000); // Show icon for 1 second
+        setTimeout(() => setShowOverlayIcon(false), 1000); // Show icon on video for 1 second
     };
 
-    // Determine which icon to display on video click
     const getVideoOverlayIcon = () => {
         if (isEnded) return replayIcon;
-        return isPlaying ? pauseIcon : playIcon;
+        return isPlaying ? playIcon : pauseIcon;
     };
 
     return (
@@ -149,8 +179,6 @@ const VideoPlayer = ({ videoDatabase }) => {
                     <source src="https://storage.eko.com/efu/homework-assignment/Oreo_try_1_vid.webm" type="video/webm" />
                     <source src="https://storage.eko.com/efu/homework-assignment/Oreo_try_1_vid.mp4" type="video/mp4" />
                 </video>
-
-                {/* Video Overlay Icon */}
                 {showOverlayIcon && (
                     <div className="absolute inset-0 flex items-center justify-center">
                         <div className="relative flex items-center justify-center">
@@ -193,15 +221,24 @@ const VideoPlayer = ({ videoDatabase }) => {
                     className="focus:outline-none"
                 >
                     <img
-                        src={iconType === 'play' ? pauseIcon : iconType === 'pause' ? playIcon : replayIcon}
+                        src={iconType === 'play' ? playIcon : iconType === 'pause' ? pauseIcon : replayIcon}
                         alt={iconType === 'play' ? 'Play' : iconType === 'pause' ? 'Pause' : 'Replay'}
                         className="w-8 h-8 cursor-pointer"
                     />
                 </button>
                 <div>
-                    <span className="text-gray-600">{formatTime(currentTime)}</span>
-                    <span className="mx-1">/</span>
-                    <span className="text-gray-900 font-semibold">{formatTime(duration)}</span>
+                    {loading ? (
+                        <span className="text-gray-600">Loading...</span>
+                    ) : (
+                        <>
+                            <span className="text-gray-600">{formatTime(currentTime)}</span>
+                            <span className="mx-1">/</span>
+                            <span className="text-gray-900 font-semibold">{formatTime(duration)}</span>
+                        </>
+                    )}
+                </div>
+                <div className="text-gray-900 font-semibold">
+                    {loading ? 'Fetching views...' : `${views} Views`}
                 </div>
             </div>
         </div>
